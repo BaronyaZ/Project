@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <title>โปรเจ็คสั่งกดน้ำ & บังคับรถ</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      background: #0f172a;
+      color: #e5e7eb;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 20px;
+    }
+
+    .app {
+      width: 100%;
+      max-width: 900px;
+      background: #020617;
+      border-radius: 20px;
+      padding: 24px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+      border: 1px solid #1f2937;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      gap: 10px;
+    }
+
+    .title {
+      font-size: 1.4rem;
+      font-weight: 700;
+    }
+
+    .subtitle {
+      font-size: 0.9rem;
+      color: #9ca3af;
+    }
+
+    .status-indicator {
+      font-size: 0.8rem;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: #111827;
+      border: 1px solid #374151;
+    }
+
+    .status-dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: #f97316;
+      margin-right: 6px;
+    }
+
+    .grid {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .card {
+      flex: 1 1 260px;
+      background: #020617;
+      border-radius: 16px;
+      border: 1px solid #1f2937;
+      padding: 16px 16px 18px;
+    }
+
+    .card h2 {
+      font-size: 1.1rem;
+      margin-bottom: 4px;
+    }
+
+    .card p {
+      font-size: 0.85rem;
+      color: #9ca3af;
+      margin-bottom: 12px;
+    }
+
+    .section-label {
+      font-size: 0.8rem;
+      color: #9ca3af;
+      margin-bottom: 6px;
+    }
+
+    /* ปุ่ม */
+    .btn {
+      border: none;
+      border-radius: 999px;
+      padding: 8px 14px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      background: #1d4ed8;
+      color: white;
+      margin-right: 6px;
+      margin-bottom: 6px;
+      transition: transform 0.08s ease, box-shadow 0.08s ease, background 0.12s;
+      box-shadow: 0 6px 14px rgba(37,99,235,0.4);
+    }
+
+    .btn.secondary {
+      background: #111827;
+      color: #e5e7eb;
+      box-shadow: none;
+      border: 1px solid #374151;
+    }
+
+    .btn.danger {
+      background: #b91c1c;
+      box-shadow: 0 6px 14px rgba(185,28,28,0.4);
+    }
+
+    .btn:active {
+      transform: translateY(1px) scale(0.97);
+      box-shadow: 0 3px 7px rgba(0,0,0,0.4);
+    }
+
+    /* สไตล์ส่วนควบคุมรถ */
+    .drive-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 70px);
+      grid-template-rows: repeat(3, 50px);
+      gap: 8px;
+      justify-content: center;
+      margin: 10px 0 4px;
+    }
+
+    .drive-btn {
+      border-radius: 12px;
+      border: 1px solid #1f2937;
+      background: #111827;
+      color: #e5e7eb;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: transform 0.08s ease, background 0.12s ease;
+    }
+
+    .drive-btn.main {
+      background: #1d4ed8;
+      border-color: #1d4ed8;
+    }
+
+    .drive-btn.stop {
+      background: #b91c1c;
+      border-color: #b91c1c;
+    }
+
+    .drive-btn:active {
+      transform: translateY(1px) scale(0.97);
+    }
+
+    .center-label {
+      font-size: 0.7rem;
+      color: #9ca3af;
+      text-align: center;
+      margin-bottom: 8px;
+    }
+
+    /* สถานะ */
+    .log-box {
+      margin-top: 14px;
+      font-size: 0.8rem;
+      background: #020617;
+      border-radius: 10px;
+      border: 1px solid #111827;
+      padding: 8px 10px;
+      max-height: 120px;
+      overflow-y: auto;
+    }
+
+    .log-line {
+      margin-bottom: 4px;
+      color: #9ca3af;
+    }
+
+    .log-line span.time {
+      color: #6b7280;
+      margin-right: 4px;
+    }
+
+    .log-line.ok {
+      color: #22c55e;
+    }
+
+    .log-line.err {
+      color: #f97316;
+    }
+
+    .water-options {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 6px;
+    }
+
+    .water-custom {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin: 4px 0 8px;
+      font-size: 0.8rem;
+    }
+
+    .water-custom input {
+      width: 70px;
+      padding: 4px 6px;
+      border-radius: 999px;
+      border: 1px solid #374151;
+      background: #020617;
+      color: #e5e7eb;
+      font-size: 0.8rem;
+      outline: none;
+    }
+
+    .water-custom span {
+      color: #9ca3af;
+    }
+
+    .footer {
+      margin-top: 18px;
+      font-size: 0.7rem;
+      text-align: right;
+      color: #6b7280;
+    }
+
+    @media (max-width: 640px) {
+      .header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .title {
+        font-size: 1.2rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="header">
+      <div>
+        <div class="title">โปรเจ็คสั่งกดน้ำ & บังคับรถ</div>
+        <div class="subtitle">หน้าเว็บสำหรับควบคุมบอร์ด/หุ่นยนต์ของคุณ</div>
+      </div>
+      <div class="status-indicator" id="connectionStatus">
+        <span class="status-dot" id="statusDot"></span>
+        สถานะ: ยังไม่เชื่อมต่อ
+      </div>
+    </header>
+
+    <main class="grid">
+      <!-- การสั่งกดน้ำ -->
+      <section class="card">
+        <h2>สั่งกดน้ำ 💧</h2>
+        <p>เลือกปริมาณน้ำที่ต้องการ หรือระบุเอง แล้วกดปุ่มเพื่อสั่งงานไปยังบอร์ด</p>
+
+        <div class="section-label">ปริมาณแบบด่วน</div>
+        <div class="water-options">
+          <button class="btn" onclick="sendWaterPreset(50)">50 ml</button>
+          <button class="btn" onclick="sendWaterPreset(100)">100 ml</button>
+          <button class="btn" onclick="sendWaterPreset(200)">200 ml</button>
+        </div>
+
+        <div class="water-custom">
+          <span>กำหนดเอง:</span>
+          <input type="number" id="waterAmountInput" min="1" max="1000" placeholder="เช่น 150" />
+          <span>ml</span>
+          <button class="btn secondary" onclick="sendCustomWater()">สั่งกด</button>
+        </div>
+
+        <button class="btn danger" onclick="sendWaterStop()">หยุดปั๊มน้ำ</button>
+
+        <div class="log-box" id="waterLog">
+          <!-- log การกดน้ำจะมาโชว์ตรงนี้ -->
+        </div>
+      </section>
+
+      <!-- การบังคับรถ -->
+      <section class="card">
+        <h2>บังคับรถ 🚗</h2>
+        <p>ใช้ปุ่มลูกศรบนหน้าจอ หรือใช้คีย์บอร์ด W A S D เพื่อบังคับทิศทาง</p>
+
+        <div class="center-label">ปุ่มทิศทาง</div>
+        <div class="drive-grid">
+          <div></div>
+          <button class="drive-btn main" onclick="sendDrive('forward')">▲</button>
+          <div></div>
+
+          <button class="drive-btn main" onclick="sendDrive('left')">◀</button>
+          <button class="drive-btn stop" onclick="sendDrive('stop')">■</button>
+          <button class="drive-btn main" onclick="sendDrive('right')">▶</button>
+
+          <div></div>
+          <button class="drive-btn main" onclick="sendDrive('backward')">▼</button>
+          <div></div>
+        </div>
+
+        <div class="center-label">โหมดความเร็ว</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:4px;">
+          <button class="btn secondary" onclick="setSpeed(30)">ช้า</button>
+          <button class="btn secondary" onclick="setSpeed(60)">ปานกลาง</button>
+          <button class="btn secondary" onclick="setSpeed(100)">เร็ว</button>
+        </div>
+
+        <div class="log-box" id="driveLog">
+          <!-- log การบังคับรถจะมาโชว์ตรงนี้ -->
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      * หมายเหตุ: แก้ URL API ในโค้ด JavaScript ให้ตรงกับบอร์ด/เซิร์ฟเวอร์ของคุณ
+    </footer>
+  </div>
+
+  <script>
+    // ======= ตั้งค่า URL API ที่นี่ =======
+    // สมมติว่าบอร์ดของคุณมี API แบบ HTTP:
+    //   POST http://192.168.4.1/api/command
+    // ถ้าใช้ URL อื่น ให้แก้ตรงนี้
+    const API_URL = "http://192.168.4.1/api/command"; // <--- แก้ตามของจริง
+
+    let currentSpeed = 60; // ค่าเริ่มต้น 0-100
+
+    // ฟังก์ชันส่งคำสั่งทั่วไป
+    async function sendCommand(type, payload = {}) {
+      const timestamp = new Date().toLocaleTimeString();
+      const body = { type, ...payload };
+
+      // ทดสอบว่าเรามี API จริงหรือยัง: ถ้าไม่มี เซฟ HTML แล้วเปิดก็ยังคลิกได้ แต่อาจ error
+      try {
+        updateStatus("กำลังส่งคำสั่ง...", "orange");
+
+        const res = await fetch(API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        });
+
+        if (!res.ok) {
+          throw new Error("HTTP " + res.status);
+        }
+
+        const data = await res.json().catch(() => ({}));
+        updateStatus("เชื่อมต่อสำเร็จ", "green");
+
+        return { ok: true, data, time: timestamp };
+      } catch (err) {
+        updateStatus("เชื่อมต่อไม่สำเร็จ / ไม่มี API", "orange");
+        return { ok: false, error: err.message, time: timestamp };
+      }
+    }
+
+    function updateStatus(text, color = "orange") {
+      const statusDiv = document.getElementById("connectionStatus");
+      const dot = document.getElementById("statusDot");
+      statusDiv.lastChild.textContent = " " + text;
+
+      if (color === "green") {
+        dot.style.background = "#22c55e";
+      } else if (color === "red") {
+        dot.style.background = "#b91c1c";
+      } else {
+        dot.style.background = "#f97316";
+      }
+    }
+
+    function appendLog(elementId, message, status = "normal") {
+      const box = document.getElementById(elementId);
+      const div = document.createElement("div");
+      div.classList.add("log-line");
+      if (status === "ok") div.classList.add("ok");
+      if (status === "err") div.classList.add("err");
+
+      const timeSpan = document.createElement("span");
+      timeSpan.classList.add("time");
+      timeSpan.textContent = "[" + new Date().toLocaleTimeString() + "]";
+
+      div.appendChild(timeSpan);
+      div.appendChild(document.createTextNode(message));
+
+      box.appendChild(div);
+      box.scrollTop = box.scrollHeight;
+    }
+
+    // ======= ส่วนของสั่งกดน้ำ =======
+    async function sendWaterPreset(amountMl) {
+      appendLog("waterLog", `ส่งคำสั่งกดน้ำ ${amountMl} ml ...`);
+      const result = await sendCommand("water_dispense", { amount_ml: amountMl });
+
+      if (result.ok) {
+        appendLog("waterLog", `สำเร็จ: กำลังกดน้ำ ${amountMl} ml`, "ok");
+      } else {
+        appendLog("waterLog", `ผิดพลาด: ${result.error || "ไม่ทราบสาเหตุ"}`, "err");
+      }
+    }
+
+    async function sendCustomWater() {
+      const input = document.getElementById("waterAmountInput");
+      const value = parseInt(input.value, 10);
+
+      if (isNaN(value) || value <= 0) {
+        appendLog("waterLog", "กรุณากรอกปริมาณน้ำเป็นตัวเลขมากกว่า 0", "err");
+        return;
+      }
+
+      await sendWaterPreset(value);
+    }
+
+    async function sendWaterStop() {
+      appendLog("waterLog", "ส่งคำสั่งหยุดปั๊มน้ำ...");
+      const result = await sendCommand("water_stop");
+
+      if (result.ok) {
+        appendLog("waterLog", "ปั๊มน้ำหยุดแล้ว", "ok");
+      } else {
+        appendLog("waterLog", `ผิดพลาด: ${result.error || "ไม่ทราบสาเหตุ"}`, "err");
+      }
+    }
+
+    // ======= ส่วนของบังคับรถ =======
+    function setSpeed(value) {
+      currentSpeed = value;
+      appendLog("driveLog", `ตั้งค่าความเร็ว: ${value}%`, "ok");
+    }
+
+    async function sendDrive(direction) {
+      appendLog("driveLog", `สั่งรถ: ${direction} (${currentSpeed}%) ...`);
+      const result = await sendCommand("drive", {
+        direction,
+        speed: currentSpeed,
+      });
+
+      if (result.ok) {
+        appendLog("driveLog", `สำเร็จ: ${direction}`, "ok");
+      } else {
+        appendLog("driveLog", `ผิดพลาด: ${result.error || "ไม่ทราบสาเหตุ"}`, "err");
+      }
+    }
+
+    // รองรับปุ่ม W A S D และ Space
+    window.addEventListener("keydown", function (e) {
+      const key = e.key.toLowerCase();
+      if (["w", "a", "s", "d", " "].includes(key)) {
+        e.preventDefault();
+      }
+
+      switch (key) {
+        case "w":
+          sendDrive("forward");
+          break;
+        case "s":
+          sendDrive("backward");
+          break;
+        case "a":
+          sendDrive("left");
+          break;
+        case "d":
+          sendDrive("right");
+          break;
+        case " ":
+          sendDrive("stop");
+          break;
+      }
+    });
+  </script>
+</body>
+</html>
